@@ -12,15 +12,15 @@ type Compiler struct {
 	nameToPositions     map[string][]uint
 }
 
-func (c *Compiler) Precedence(op OperatorType) uint {
+func (c *Compiler) precedence(op OperatorType) uint {
 	return c.dialect.Precedence(op)
 }
 
-func (c *Compiler) Associativity(op OperatorType) Associativity {
+func (c *Compiler) associativity(op OperatorType) Associativity {
 	return c.dialect.Associativity(op)
 }
 
-func (c *Compiler) MakePlaceholder(name string, position uint) string {
+func (c *Compiler) makePlaceholder(name string, position uint) string {
 	return c.dialect.MakePlaceholder(name, position)
 }
 

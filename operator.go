@@ -58,7 +58,7 @@ func resolveOperatorPrecedence(op Operator, c *Compiler) (uint, error) {
 	if customPrecedence != 0 {
 		return customPrecedence, nil
 	}
-	precedence := c.Precedence(op.OperatorType())
+	precedence := c.precedence(op.OperatorType())
 	if precedence != 0 {
 		return precedence, nil
 	}
@@ -70,7 +70,7 @@ func resolveOperatorAssociativity(op Operator, c *Compiler) (Associativity, erro
 	if customAssociativity != 0 {
 		return customAssociativity, nil
 	}
-	associativity := c.Associativity(op.OperatorType())
+	associativity := c.associativity(op.OperatorType())
 	if associativity != 0 {
 		return associativity, nil
 	}

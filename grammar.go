@@ -292,7 +292,7 @@ func (p Placeholder) Transform(c *Compiler) Node {
 
 func (p Placeholder) Stringify(c *Compiler) error {
 	pos := c.insertPlaceholder(string(p))
-	rendered := c.MakePlaceholder(string(p), pos)
+	rendered := c.makePlaceholder(string(p), pos)
 	c.WriteVerbatim(rendered)
 	return nil
 }
