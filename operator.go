@@ -365,7 +365,7 @@ func Not(e Expr) *NotOperator {
 	}
 }
 
-func IsNull(e Expr) Expr {
+func IsNull(e Expr) *UnaryOperator {
 	return &UnaryOperator{
 		Type:          OpIsNull,
 		Symbol:        "IS NULL",
@@ -375,7 +375,7 @@ func IsNull(e Expr) Expr {
 	}
 }
 
-func IsNotNull(e Expr) Expr {
+func IsNotNull(e Expr) *UnaryOperator {
 	return &UnaryOperator{
 		Type:          OpIsNotNull,
 		Symbol:        "IS NOT NULL",
@@ -385,7 +385,7 @@ func IsNotNull(e Expr) Expr {
 	}
 }
 
-func IsTrue(e Expr) Expr {
+func IsTrue(e Expr) *UnaryOperator {
 	return &UnaryOperator{
 		Type:          OpIsTrue,
 		Symbol:        "IS TRUE",
@@ -395,7 +395,7 @@ func IsTrue(e Expr) Expr {
 	}
 }
 
-func IsNotTrue(e Expr) Expr {
+func IsNotTrue(e Expr) *UnaryOperator {
 	return &UnaryOperator{
 		Type:          OpIsNotTrue,
 		Symbol:        "IS NOT TRUE",
@@ -405,7 +405,7 @@ func IsNotTrue(e Expr) Expr {
 	}
 }
 
-func IsFalse(e Expr) Expr {
+func IsFalse(e Expr) *UnaryOperator {
 	return &UnaryOperator{
 		Type:          OpIsFalse,
 		Symbol:        "IS FALSE",
@@ -415,7 +415,7 @@ func IsFalse(e Expr) Expr {
 	}
 }
 
-func IsNotFalse(e Expr) Expr {
+func IsNotFalse(e Expr) *UnaryOperator {
 	return &UnaryOperator{
 		Type:          OpIsNotFalse,
 		Symbol:        "IS NOT FALSE",
@@ -425,7 +425,7 @@ func IsNotFalse(e Expr) Expr {
 	}
 }
 
-func dot(left, right Expr) Expr {
+func dot(left, right Expr) *BinaryOperator {
 	return &BinaryOperator{
 		Type:          OpDot,
 		Symbol:        ".",
@@ -435,7 +435,7 @@ func dot(left, right Expr) Expr {
 	}
 }
 
-func And(left, right Expr) Expr {
+func And(left, right Expr) *BinaryOperator {
 	return &BinaryOperator{
 		Type:   OpAnd,
 		Symbol: "AND",
@@ -444,7 +444,7 @@ func And(left, right Expr) Expr {
 	}
 }
 
-func Or(left, right Expr) Expr {
+func Or(left, right Expr) *BinaryOperator {
 	return &BinaryOperator{
 		Type:   OpOr,
 		Symbol: "OR",
@@ -453,7 +453,7 @@ func Or(left, right Expr) Expr {
 	}
 }
 
-func Add(left, right Expr) Expr {
+func Add(left, right Expr) *BinaryOperator {
 	return &BinaryOperator{
 		Type:   OpAdd,
 		Symbol: "+",
@@ -462,7 +462,7 @@ func Add(left, right Expr) Expr {
 	}
 }
 
-func Sub(left, right Expr) Expr {
+func Sub(left, right Expr) *BinaryOperator {
 	return &BinaryOperator{
 		Type:   OpSub,
 		Symbol: "-",
@@ -471,7 +471,7 @@ func Sub(left, right Expr) Expr {
 	}
 }
 
-func Mul(left, right Expr) Expr {
+func Mul(left, right Expr) *BinaryOperator {
 	return &BinaryOperator{
 		Type:   OpMul,
 		Symbol: "*",
@@ -480,7 +480,7 @@ func Mul(left, right Expr) Expr {
 	}
 }
 
-func Div(left, right Expr) Expr {
+func Div(left, right Expr) *BinaryOperator {
 	return &BinaryOperator{
 		Type:   OpDiv,
 		Symbol: "/",
@@ -489,7 +489,7 @@ func Div(left, right Expr) Expr {
 	}
 }
 
-func Mod(left, right Expr) Expr {
+func Mod(left, right Expr) *BinaryOperator {
 	return &BinaryOperator{
 		Type:   OpMod,
 		Symbol: "%",
@@ -498,7 +498,7 @@ func Mod(left, right Expr) Expr {
 	}
 }
 
-func Lt(left, right Expr) Expr {
+func Lt(left, right Expr) *BinaryOperator {
 	return &BinaryOperator{
 		Type:   OpLt,
 		Symbol: "<",
@@ -507,7 +507,7 @@ func Lt(left, right Expr) Expr {
 	}
 }
 
-func Lte(left, right Expr) Expr {
+func Lte(left, right Expr) *BinaryOperator {
 	return &BinaryOperator{
 		Type:   OpLte,
 		Symbol: "<=",
@@ -516,7 +516,7 @@ func Lte(left, right Expr) Expr {
 	}
 }
 
-func Gt(left, right Expr) Expr {
+func Gt(left, right Expr) *BinaryOperator {
 	return &BinaryOperator{
 		Type:   OpGt,
 		Symbol: ">",
@@ -525,7 +525,7 @@ func Gt(left, right Expr) Expr {
 	}
 }
 
-func Gte(left, right Expr) Expr {
+func Gte(left, right Expr) *BinaryOperator {
 	return &BinaryOperator{
 		Type:   OpGte,
 		Symbol: ">=",
@@ -534,7 +534,7 @@ func Gte(left, right Expr) Expr {
 	}
 }
 
-func Eq(left, right Expr) Expr {
+func Eq(left, right Expr) *BinaryOperator {
 	return &BinaryOperator{
 		Type:          OpEq,
 		Symbol:        "=",
@@ -545,7 +545,7 @@ func Eq(left, right Expr) Expr {
 	}
 }
 
-func NotEq(left, right Expr) Expr {
+func NotEq(left, right Expr) *BinaryOperator {
 	return &BinaryOperator{
 		Type:          OpNotEq,
 		Symbol:        "<>",
@@ -556,7 +556,7 @@ func NotEq(left, right Expr) Expr {
 	}
 }
 
-func In(left, right Expr) Expr {
+func In(left, right Expr) *BinaryOperator {
 	return &BinaryOperator{
 		Type:          OpIn,
 		Symbol:        "IN",
@@ -567,7 +567,7 @@ func In(left, right Expr) Expr {
 	}
 }
 
-func NotIn(left, right Expr) Expr {
+func NotIn(left, right Expr) *BinaryOperator {
 	return &BinaryOperator{
 		Type:          OpNotIn,
 		Symbol:        "NOT IN",
@@ -578,7 +578,7 @@ func NotIn(left, right Expr) Expr {
 	}
 }
 
-func Like(left, right Expr) Expr {
+func Like(left, right Expr) *BinaryOperator {
 	return &BinaryOperator{
 		Type:          OpLike,
 		Symbol:        "LIKE",
@@ -589,7 +589,7 @@ func Like(left, right Expr) Expr {
 	}
 }
 
-func NotLike(left, right Expr) Expr {
+func NotLike(left, right Expr) *BinaryOperator {
 	return &BinaryOperator{
 		Type:          OpNotLike,
 		Symbol:        "NOT LIKE",
@@ -600,7 +600,7 @@ func NotLike(left, right Expr) Expr {
 	}
 }
 
-func ILike(left, right Expr) Expr {
+func ILike(left, right Expr) *BinaryOperator {
 	return &BinaryOperator{
 		Type:          OpILike,
 		Symbol:        "ILIKE",
@@ -611,7 +611,7 @@ func ILike(left, right Expr) Expr {
 	}
 }
 
-func NotILike(left, right Expr) Expr {
+func NotILike(left, right Expr) *BinaryOperator {
 	return &BinaryOperator{
 		Type:          OpNotILike,
 		Symbol:        "NOT ILIKE",
