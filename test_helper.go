@@ -38,3 +38,20 @@ func testCompile(t *testing.T, e Node, expected string) {
 	}
 	testEqual(t, actual, expected)
 }
+
+func testPanic(t *testing.T, op func(), value string) {
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Errorf("expected panic with %v", value)
+		}
+		s, ok := r.(string)
+		if !ok {
+			t.Errorf("expected panic with %v but got: %v", value, r)
+		}
+		if s != value {
+			t.Errorf("expected panic with %v but got: %v", value, s)
+		}
+	}()
+	op()
+}

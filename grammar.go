@@ -2,6 +2,8 @@ package flexsql
 
 import (
 	"errors"
+	"fmt"
+	"regexp"
 	"strconv"
 )
 
@@ -14,6 +16,8 @@ var (
 	ErrUnknownInputKey       = errors.New("Unknown input key")
 	ErrUnboundPlaceholder    = errors.New("Unbound placeholder")
 )
+
+var funcNameRegexp = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_.]*$`)
 
 type JoinType uint
 
@@ -30,6 +34,67 @@ type Node interface {
 }
 
 type Expr = Node
+
+type FuncExpr struct {
+	name            string
+	args            []Expr
+	omitParentheses bool
+}
+
+func checkFuncName(name string) {
+	re := funcNameRegexp.Copy()
+	if !re.MatchString(name) {
+		panic(fmt.Sprintf("illegal function name: %v", name))
+	}
+}
+
+func Func(name string) func(...Expr) *FuncExpr {
+	checkFuncName(name)
+	return func(args ...Expr) *FuncExpr {
+		return &FuncExpr{
+			name: name,
+			args: args,
+		}
+	}
+}
+
+func Func0(name string) *FuncExpr {
+	checkFuncName(name)
+	return &FuncExpr{
+		name:            name,
+		omitParentheses: true,
+	}
+}
+
+func (f *FuncExpr) Transform(c *Compiler) Node {
+	for i, v := range f.args {
+		f.args[i] = v.Transform(c).(Expr)
+	}
+	return f
+}
+
+func (f *FuncExpr) Stringify(c *Compiler) error {
+	c.WriteVerbatim(f.name)
+	if len(f.args) <= 0 {
+		if f.omitParentheses {
+			return nil
+		}
+		c.WriteVerbatim("()")
+		return nil
+	}
+	c.WriteVerbatim("(")
+	if err := f.args[0].Stringify(c); err != nil {
+		return err
+	}
+	for _, e := range f.args[1:] {
+		c.WriteVerbatim(",")
+		if err := e.Stringify(c); err != nil {
+			return err
+		}
+	}
+	c.WriteVerbatim(")")
+	return nil
+}
 
 type CommaSeparated struct {
 	nodes []Node

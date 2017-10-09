@@ -182,3 +182,20 @@ func TestPlaceholders(t *testing.T) {
 		}
 	}
 }
+
+func TestFunc(t *testing.T) {
+	f := literal("f")
+	cases := []compileTest{
+		{Func("foobar")(), "foobar()"},
+		{Func("foobar")(f), "foobar(f)"},
+		{Func("foobar")(f, f), "foobar(f,f)"},
+		{Func("a.b")(f, f), "a.b(f,f)"},
+		{Func0("foobar"), "foobar"},
+	}
+	testMany(t, cases)
+}
+
+func TestFuncPanic(t *testing.T) {
+	testPanic(t, func() { Func("1") }, "illegal function name: 1")
+	testPanic(t, func() { Func("a-") }, "illegal function name: a-")
+}
