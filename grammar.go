@@ -19,15 +19,6 @@ var (
 
 var funcNameRegexp = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_.]*$`)
 
-type JoinType uint
-
-const (
-	InnerJoin JoinType = iota
-	LeftOuterJoin
-	RightOuterJoin
-	FullOuterJoin
-)
-
 type Node interface {
 	Stringify(c *Compiler) error
 	Transform(c *Compiler) Node
@@ -138,7 +129,7 @@ func (f *FromClause) Stringify(c *Compiler) error {
 }
 
 type JoinClause struct {
-	joinType JoinType
+	joinType string
 	left     *FromClauseItem
 	right    *FromClauseItem
 	on       Expr
@@ -155,16 +146,7 @@ func (j *JoinClause) Stringify(c *Compiler) error {
 	if err := j.left.Stringify(c); err != nil {
 		return err
 	}
-	switch j.joinType {
-	case InnerJoin:
-		c.WriteVerbatim(" JOIN ")
-	case LeftOuterJoin:
-		c.WriteVerbatim(" LEFT JOIN ")
-	case RightOuterJoin:
-		c.WriteVerbatim(" RIGHT JOIN ")
-	case FullOuterJoin:
-		c.WriteVerbatim(" FULL JOIN ")
-	}
+	c.WriteVerbatim(" " + j.joinType + " ")
 	if err := j.right.Stringify(c); err != nil {
 		return err
 	}
@@ -174,7 +156,7 @@ func (j *JoinClause) Stringify(c *Compiler) error {
 
 func Join(left, right *FromClauseItem, on Expr) *JoinClause {
 	return &JoinClause{
-		joinType: InnerJoin,
+		joinType: "JOIN",
 		left:     left,
 		right:    right,
 		on:       on,
@@ -183,7 +165,7 @@ func Join(left, right *FromClauseItem, on Expr) *JoinClause {
 
 func LeftJoin(left, right *FromClauseItem, on Expr) *JoinClause {
 	return &JoinClause{
-		joinType: LeftOuterJoin,
+		joinType: "LEFT JOIN",
 		left:     left,
 		right:    right,
 		on:       on,
@@ -192,7 +174,7 @@ func LeftJoin(left, right *FromClauseItem, on Expr) *JoinClause {
 
 func RightJoin(left, right *FromClauseItem, on Expr) *JoinClause {
 	return &JoinClause{
-		joinType: RightOuterJoin,
+		joinType: "RIGHT JOIN",
 		left:     left,
 		right:    right,
 		on:       on,
@@ -201,7 +183,7 @@ func RightJoin(left, right *FromClauseItem, on Expr) *JoinClause {
 
 func FullJoin(left, right *FromClauseItem, on Expr) *JoinClause {
 	return &JoinClause{
-		joinType: FullOuterJoin,
+		joinType: "FULL JOIN",
 		left:     left,
 		right:    right,
 		on:       on,
