@@ -87,6 +87,10 @@ type UnaryOperator struct {
 	CustomAssociativity Associativity
 }
 
+func (u *UnaryOperator) isNot() bool {
+	return u.Type == OpNot
+}
+
 func (u *UnaryOperator) precedence() uint {
 	return u.CustomPrecedence
 }
@@ -100,10 +104,13 @@ func (u *UnaryOperator) operatorType() OperatorType {
 }
 
 func (u *UnaryOperator) negatable() bool {
-	return u.NegatedType != 0 && u.NegatedSymbol != ""
+	return u.isNot() || (u.NegatedType != 0 && u.NegatedSymbol != "")
 }
 
 func (u *UnaryOperator) negate() Expr {
+	if u.isNot() {
+		return u.Expr
+	}
 	return &UnaryOperator{
 		Type:                u.NegatedType,
 		Symbol:              u.NegatedSymbol,
@@ -116,6 +123,13 @@ func (u *UnaryOperator) negate() Expr {
 }
 
 func (u *UnaryOperator) Transform(c *Compiler) Node {
+	if u.isNot() {
+		if v, ok := (u.Expr).(operator); ok {
+			if v.negatable() {
+				return v.negate().Transform(c)
+			}
+		}
+	}
 	u.Expr = (u.Expr.Transform(c)).(Expr)
 	return u
 }
@@ -334,34 +348,11 @@ func (t *TernaryOperator) Stringify(c *Compiler) error {
 	return handleExpr(t.Expr3)
 }
 
-type notOperator struct {
-	*UnaryOperator
-}
-
-func (n *notOperator) negatable() bool {
-	return true
-}
-
-func (n *notOperator) negate() Expr {
-	return n.UnaryOperator.Expr
-}
-
-func (n *notOperator) Transform(c *Compiler) Node {
-	if v, ok := (n.Expr).(operator); ok {
-		if v.negatable() {
-			return v.negate().Transform(c)
-		}
-	}
-	return n.UnaryOperator.Transform(c)
-}
-
-func Not(e Expr) Expr {
-	return &notOperator{
-		UnaryOperator: &UnaryOperator{
-			Type:   OpNot,
-			Symbol: "NOT",
-			Expr:   e,
-		},
+func Not(e Expr) *UnaryOperator {
+	return &UnaryOperator{
+		Type:   OpNot,
+		Symbol: "NOT",
+		Expr:   e,
 	}
 }
 
