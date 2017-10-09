@@ -44,33 +44,33 @@ const (
 	RightAssociative
 )
 
-type Operator interface {
+type operator interface {
 	Expr
-	Precedence() uint
-	Associativity() Associativity
-	OperatorType() OperatorType
-	Negatable() bool
-	Negate() Expr
+	precedence() uint
+	associativity() Associativity
+	operatorType() OperatorType
+	negatable() bool
+	negate() Expr
 }
 
-func resolveOperatorPrecedence(op Operator, c *Compiler) (uint, error) {
-	customPrecedence := op.Precedence()
+func resolveOperatorPrecedence(op operator, c *Compiler) (uint, error) {
+	customPrecedence := op.precedence()
 	if customPrecedence != 0 {
 		return customPrecedence, nil
 	}
-	precedence := c.precedence(op.OperatorType())
+	precedence := c.precedence(op.operatorType())
 	if precedence != 0 {
 		return precedence, nil
 	}
 	return 0, ErrNoPrecedence
 }
 
-func resolveOperatorAssociativity(op Operator, c *Compiler) (Associativity, error) {
-	customAssociativity := op.Associativity()
+func resolveOperatorAssociativity(op operator, c *Compiler) (Associativity, error) {
+	customAssociativity := op.associativity()
 	if customAssociativity != 0 {
 		return customAssociativity, nil
 	}
-	associativity := c.associativity(op.OperatorType())
+	associativity := c.associativity(op.operatorType())
 	if associativity != 0 {
 		return associativity, nil
 	}
@@ -87,23 +87,23 @@ type UnaryOperator struct {
 	CustomAssociativity Associativity
 }
 
-func (u *UnaryOperator) Precedence() uint {
+func (u *UnaryOperator) precedence() uint {
 	return u.CustomPrecedence
 }
 
-func (u *UnaryOperator) Associativity() Associativity {
+func (u *UnaryOperator) associativity() Associativity {
 	return u.CustomAssociativity
 }
 
-func (u *UnaryOperator) OperatorType() OperatorType {
+func (u *UnaryOperator) operatorType() OperatorType {
 	return u.Type
 }
 
-func (u *UnaryOperator) Negatable() bool {
+func (u *UnaryOperator) negatable() bool {
 	return u.NegatedType != 0 && u.NegatedSymbol != ""
 }
 
-func (u *UnaryOperator) Negate() Expr {
+func (u *UnaryOperator) negate() Expr {
 	return &UnaryOperator{
 		Type:                u.NegatedType,
 		Symbol:              u.NegatedSymbol,
@@ -146,7 +146,7 @@ func (u *UnaryOperator) Stringify(c *Compiler) error {
 	if err != nil {
 		return err
 	}
-	v, ok := (u.Expr).(Operator)
+	v, ok := (u.Expr).(operator)
 	if !ok {
 		return write(u.Expr)
 	}
@@ -172,23 +172,23 @@ type BinaryOperator struct {
 	SuppressSpace       bool
 }
 
-func (b *BinaryOperator) Precedence() uint {
+func (b *BinaryOperator) precedence() uint {
 	return b.CustomPrecedence
 }
 
-func (b *BinaryOperator) Associativity() Associativity {
+func (b *BinaryOperator) associativity() Associativity {
 	return b.CustomAssociativity
 }
 
-func (b *BinaryOperator) OperatorType() OperatorType {
+func (b *BinaryOperator) operatorType() OperatorType {
 	return b.Type
 }
 
-func (b *BinaryOperator) Negatable() bool {
+func (b *BinaryOperator) negatable() bool {
 	return b.NegatedType != 0 && b.NegatedSymbol != ""
 }
 
-func (b *BinaryOperator) Negate() Expr {
+func (b *BinaryOperator) negate() Expr {
 	return &BinaryOperator{
 		Type:                b.NegatedType,
 		Symbol:              b.NegatedSymbol,
@@ -218,7 +218,7 @@ func (b *BinaryOperator) Stringify(c *Compiler) error {
 	}
 
 	handleSide := func(e Expr, targetAssoc Associativity) error {
-		op, ok := e.(Operator)
+		op, ok := e.(operator)
 		if !ok {
 			return e.Stringify(c)
 		}
@@ -261,23 +261,23 @@ type TernaryOperator struct {
 	CustomAssociativity Associativity
 }
 
-func (t *TernaryOperator) Precedence() uint {
+func (t *TernaryOperator) precedence() uint {
 	return t.CustomPrecedence
 }
 
-func (t *TernaryOperator) Associativity() Associativity {
+func (t *TernaryOperator) associativity() Associativity {
 	return t.CustomAssociativity
 }
 
-func (t *TernaryOperator) OperatorType() OperatorType {
+func (t *TernaryOperator) operatorType() OperatorType {
 	return t.Type
 }
 
-func (t *TernaryOperator) Negatable() bool {
+func (t *TernaryOperator) negatable() bool {
 	return t.NegatedType != 0 && t.NegatedSymbol1 != "" && t.NegatedSymbol2 != ""
 }
 
-func (t *TernaryOperator) Negate() Expr {
+func (t *TernaryOperator) negate() Expr {
 	return &TernaryOperator{
 		Type:                t.NegatedType,
 		Symbol1:             t.NegatedSymbol1,
@@ -307,7 +307,7 @@ func (t *TernaryOperator) Stringify(c *Compiler) error {
 	}
 
 	handleExpr := func(e Expr) error {
-		op, ok := e.(Operator)
+		op, ok := e.(operator)
 		if !ok {
 			return e.Stringify(c)
 		}
@@ -334,30 +334,30 @@ func (t *TernaryOperator) Stringify(c *Compiler) error {
 	return handleExpr(t.Expr3)
 }
 
-type NotOperator struct {
-	UnaryOperator
+type notOperator struct {
+	*UnaryOperator
 }
 
-func (n *NotOperator) Negatable() bool {
+func (n *notOperator) negatable() bool {
 	return true
 }
 
-func (n *NotOperator) Negate() Expr {
+func (n *notOperator) negate() Expr {
 	return n.UnaryOperator.Expr
 }
 
-func (n *NotOperator) Transform(c *Compiler) Node {
-	if v, ok := (n.Expr).(Operator); ok {
-		if v.Negatable() {
-			return v.Negate().Transform(c)
+func (n *notOperator) Transform(c *Compiler) Node {
+	if v, ok := (n.Expr).(operator); ok {
+		if v.negatable() {
+			return v.negate().Transform(c)
 		}
 	}
 	return n.UnaryOperator.Transform(c)
 }
 
-func Not(e Expr) *NotOperator {
-	return &NotOperator{
-		UnaryOperator: UnaryOperator{
+func Not(e Expr) Expr {
+	return &notOperator{
+		UnaryOperator: &UnaryOperator{
 			Type:   OpNot,
 			Symbol: "NOT",
 			Expr:   e,
