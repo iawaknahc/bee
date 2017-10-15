@@ -312,19 +312,19 @@ func (f *FromClauseItem) Stringify(c *Compiler) error {
 }
 
 type Tuple struct {
-	Exprs []Expr
+	exprs []Expr
 }
 
 func (t *Tuple) Transform(c *Compiler) Node {
-	for i, e := range t.Exprs {
-		t.Exprs[i] = e.Transform(c).(Expr)
+	for i, e := range t.exprs {
+		t.exprs[i] = e.Transform(c).(Expr)
 	}
 	return t
 }
 
 func (t *Tuple) Stringify(c *Compiler) error {
 	c.WriteVerbatim("(")
-	if err := stringifyCommaSeparated(t.Exprs, c); err != nil {
+	if err := stringifyCommaSeparated(t.exprs, c); err != nil {
 		return err
 	}
 	c.WriteVerbatim(")")
@@ -402,19 +402,19 @@ func (w *WhereClause) Stringify(c *Compiler) error {
 }
 
 type GroupByClause struct {
-	Exprs []Expr
+	exprs []Expr
 }
 
 func (g *GroupByClause) Transform(c *Compiler) Node {
-	for i, e := range g.Exprs {
-		g.Exprs[i] = e.Transform(c).(Expr)
+	for i, e := range g.exprs {
+		g.exprs[i] = e.Transform(c).(Expr)
 	}
 	return g
 }
 
 func (g *GroupByClause) Stringify(c *Compiler) error {
 	c.WriteVerbatim("GROUP BY ")
-	return stringifyCommaSeparated(g.Exprs, c)
+	return stringifyCommaSeparated(g.exprs, c)
 }
 
 func GroupBy(first Expr, rest ...Expr) *GroupByClause {
