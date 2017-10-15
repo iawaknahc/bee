@@ -528,6 +528,35 @@ func NullsFirst(o OrderByItem) OrderByItem {
 	}
 }
 
+type OrderByClause struct {
+	items []OrderByItem
+}
+
+func (o *OrderByClause) Transform(c *Compiler) Node {
+	for i, e := range o.items {
+		o.items[i] = e.Transform(c).(OrderByItem)
+	}
+	return o
+}
+
+func (o *OrderByClause) Stringify(c *Compiler) error {
+	c.WriteVerbatim("ORDER BY ")
+	nodes := make([]Node, len(o.items))
+	for i, v := range o.items {
+		nodes[i] = v
+	}
+	return stringifyCommaSeparated(nodes, c)
+}
+
+func OrderBy(first OrderByItem, rest ...OrderByItem) *OrderByClause {
+	items := make([]OrderByItem, 1+len(rest))
+	items[0] = first
+	for i, v := range rest {
+		items[i+1] = v
+	}
+	return &OrderByClause{items}
+}
+
 type LimitClause struct {
 	Expr Expr
 }
@@ -562,6 +591,7 @@ type SelectStmt struct {
 	WhereClause   *WhereClause
 	GroupByClause *GroupByClause
 	HavingClause  *HavingClause
+	OrderByClause *OrderByClause
 	LimitClause   *LimitClause
 	OffsetClause  *OffsetClause
 }
@@ -581,6 +611,9 @@ func (s *SelectStmt) Transform(c *Compiler) Node {
 	}
 	if s.HavingClause != nil {
 		s.HavingClause = (s.HavingClause.Transform(c)).(*HavingClause)
+	}
+	if s.OrderByClause != nil {
+		s.OrderByClause = (s.OrderByClause.Transform(c)).(*OrderByClause)
 	}
 	if s.LimitClause != nil {
 		s.LimitClause = (s.LimitClause.Transform(c)).(*LimitClause)
@@ -623,6 +656,12 @@ func (s *SelectStmt) Stringify(c *Compiler) error {
 	if s.HavingClause != nil {
 		c.WriteVerbatim(" ")
 		if err := s.HavingClause.Stringify(c); err != nil {
+			return err
+		}
+	}
+	if s.OrderByClause != nil {
+		c.WriteVerbatim(" ")
+		if err := s.OrderByClause.Stringify(c); err != nil {
 			return err
 		}
 	}

@@ -168,11 +168,14 @@ func TestSelectStmt(t *testing.T) {
 	sel.HavingClause = &HavingClause{literal("FALSE")}
 	testCompile(t, sel, `SELECT 1 "a" FROM "s"."a" "s_a" WHERE TRUE GROUP BY f HAVING FALSE`)
 
+	sel.OrderByClause = OrderBy(Asc(literal("f")))
+	testCompile(t, sel, `SELECT 1 "a" FROM "s"."a" "s_a" WHERE TRUE GROUP BY f HAVING FALSE ORDER BY f`)
+
 	sel.LimitClause = &LimitClause{literal("10")}
-	testCompile(t, sel, `SELECT 1 "a" FROM "s"."a" "s_a" WHERE TRUE GROUP BY f HAVING FALSE LIMIT 10`)
+	testCompile(t, sel, `SELECT 1 "a" FROM "s"."a" "s_a" WHERE TRUE GROUP BY f HAVING FALSE ORDER BY f LIMIT 10`)
 
 	sel.OffsetClause = &OffsetClause{literal("20")}
-	testCompile(t, sel, `SELECT 1 "a" FROM "s"."a" "s_a" WHERE TRUE GROUP BY f HAVING FALSE LIMIT 10 OFFSET 20`)
+	testCompile(t, sel, `SELECT 1 "a" FROM "s"."a" "s_a" WHERE TRUE GROUP BY f HAVING FALSE ORDER BY f LIMIT 10 OFFSET 20`)
 }
 
 func TestTuple(t *testing.T) {
@@ -248,6 +251,15 @@ func TestOrderByItem(t *testing.T) {
 		{NullsLast(Asc(f)), "f"},
 		{NullsFirst(Desc(f)), "f DESC"},
 		{NullsLast(Desc(f)), "f DESC NULLS LAST"},
+	}
+	testMany(t, cases)
+}
+
+func TestOrderByClause(t *testing.T) {
+	f := literal("f")
+	cases := []compileTest{
+		{OrderBy(Asc(f)), "ORDER BY f"},
+		{OrderBy(Asc(f), Desc(f)), "ORDER BY f,f DESC"},
 	}
 	testMany(t, cases)
 }
