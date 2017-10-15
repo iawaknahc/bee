@@ -15,21 +15,36 @@ func (l literal) Stringify(c *Compiler) error {
 	return nil
 }
 
-func TestTable(t *testing.T) {
-	f := &Table{
-		Schema: "a",
-		Name:   "b",
+func TestColumn(t *testing.T) {
+	cases := []compileTest{
+		{&Column{TableLabel: "t", Name: "a"}, `"t"."a"`},
+		{&Column{Name: "a"}, `"a"`},
 	}
-	testCompile(t, f, `"a"."b"`)
+	testMany(t, cases)
+}
+
+func TestLabeledColumn(t *testing.T) {
+	cases := []compileTest{
+		{&LabeledColumn{TableLabel: "t", Name: "a", Label: "t_a"}, `"t"."a" "t_a"`},
+		{&LabeledColumn{Name: "a", Label: "t_a"}, `"a" "t_a"`},
+	}
+	testMany(t, cases)
+}
+
+func TestTable(t *testing.T) {
+	cases := []compileTest{
+		{&Table{Schema: "a", Name: "b"}, `"a"."b"`},
+		{&Table{Name: "b"}, `"b"`},
+	}
+	testMany(t, cases)
 }
 
 func TestLabeledTable(t *testing.T) {
-	f := &LabeledTable{
-		Schema: "a",
-		Name:   "b",
-		Label:  "a_b",
+	cases := []compileTest{
+		{&LabeledTable{Schema: "a", Name: "b", Label: "a_b"}, `"a"."b" "a_b"`},
+		{&LabeledTable{Name: "b", Label: "a_b"}, `"b" "a_b"`},
 	}
-	testCompile(t, f, `"a"."b" "a_b"`)
+	testMany(t, cases)
 }
 
 func TestSubquery(t *testing.T) {

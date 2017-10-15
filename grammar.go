@@ -205,14 +205,6 @@ func Quote(name string) Quoted {
 	return Quoted(name)
 }
 
-func Column(tableLabel, columnName string) Node {
-	if tableLabel == "" {
-		return Quote(columnName)
-
-	}
-	return dot(Quote(tableLabel), Quote(columnName))
-}
-
 type Labeled struct {
 	expr        Expr
 	quotedLabel Quoted
@@ -254,6 +246,45 @@ func (l *LabeledSelectStmt) Transform(c *Compiler) Node {
 
 func Subquery(sel *SelectStmt, alias string) *LabeledSelectStmt {
 	return &LabeledSelectStmt{Label(&Paren{sel}, alias)}
+}
+
+type Column struct {
+	TableLabel string
+	Name       string
+}
+
+func (col *Column) Transform(c *Compiler) Node {
+	return col
+}
+
+func (col *Column) Stringify(c *Compiler) error {
+	if col.TableLabel != "" {
+		c.WriteIdentifier(col.TableLabel)
+		c.WriteVerbatim(".")
+	}
+	c.WriteIdentifier(col.Name)
+	return nil
+}
+
+type LabeledColumn struct {
+	TableLabel string
+	Name       string
+	Label      string
+}
+
+func (l *LabeledColumn) Transform(c *Compiler) Node {
+	return l
+}
+
+func (l *LabeledColumn) Stringify(c *Compiler) error {
+	if l.TableLabel != "" {
+		c.WriteIdentifier(l.TableLabel)
+		c.WriteVerbatim(".")
+	}
+	c.WriteIdentifier(l.Name)
+	c.WriteVerbatim(" ")
+	c.WriteIdentifier(l.Label)
+	return nil
 }
 
 type Table struct {
