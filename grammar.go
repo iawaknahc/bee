@@ -340,6 +340,65 @@ func MakeTuple(first Expr, rest ...Expr) *Tuple {
 	return &Tuple{exprs}
 }
 
+type CaseExpr struct {
+	conds   []Expr
+	results []Expr
+	else_   Expr
+}
+
+func Case(cond Expr, result Expr) *CaseExpr {
+	return &CaseExpr{
+		conds:   []Expr{cond},
+		results: []Expr{result},
+	}
+}
+
+func (ce *CaseExpr) When(cond Expr, result Expr) *CaseExpr {
+	ce.conds = append(ce.conds, cond)
+	ce.results = append(ce.results, result)
+	return ce
+}
+
+func (ce *CaseExpr) Else(elseExpr Expr) *CaseExpr {
+	ce.else_ = elseExpr
+	return ce
+}
+
+func (ce *CaseExpr) Transform(c *Compiler) Node {
+	for i, v := range ce.conds {
+		ce.conds[i] = v.Transform(c).(Expr)
+	}
+	for i, v := range ce.results {
+		ce.results[i] = v.Transform(c).(Expr)
+	}
+	if ce.else_ != nil {
+		ce.else_ = ce.else_.Transform(c).(Expr)
+	}
+	return ce
+}
+
+func (ce *CaseExpr) Stringify(c *Compiler) error {
+	c.WriteVerbatim("CASE")
+	for i := 0; i < len(ce.conds); i++ {
+		c.WriteVerbatim(" WHEN ")
+		if err := ce.conds[i].Stringify(c); err != nil {
+			return err
+		}
+		c.WriteVerbatim(" THEN ")
+		if err := ce.results[i].Stringify(c); err != nil {
+			return err
+		}
+	}
+	if ce.else_ != nil {
+		c.WriteVerbatim(" ELSE ")
+		if err := ce.else_.Stringify(c); err != nil {
+			return err
+		}
+	}
+	c.WriteVerbatim(" END")
+	return nil
+}
+
 type Placeholder string
 
 func (p Placeholder) Transform(c *Compiler) Node {

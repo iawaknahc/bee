@@ -263,3 +263,17 @@ func TestOrderByClause(t *testing.T) {
 	}
 	testMany(t, cases)
 }
+
+func TestCaseExpr(t *testing.T) {
+	a := literal("a")
+	b := literal("b")
+	c := literal("c")
+	d := literal("d")
+	e := literal("e")
+	cases := []compileTest{
+		{Case(a, b), "CASE WHEN a THEN b END"},
+		{Case(a, b).When(c, d), "CASE WHEN a THEN b WHEN c THEN d END"},
+		{Case(a, b).When(c, d).Else(e), "CASE WHEN a THEN b WHEN c THEN d ELSE e END"},
+	}
+	testMany(t, cases)
+}
