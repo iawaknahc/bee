@@ -17,24 +17,24 @@ func (l literal) Stringify(c *Compiler) error {
 
 func TestColumn(t *testing.T) {
 	cases := []compileTest{
-		{&Column{TableLabel: "t", Name: "a"}, `"t"."a"`},
-		{&Column{Name: "a"}, `"a"`},
+		{&Column{"t", "a"}, `"t"."a"`},
+		{&Column{"", "a"}, `"a"`},
 	}
 	testMany(t, cases)
 }
 
 func TestLabeledColumn(t *testing.T) {
 	cases := []compileTest{
-		{&LabeledColumn{TableLabel: "t", Name: "a", Label: "t_a"}, `"t"."a" "t_a"`},
-		{&LabeledColumn{Name: "a", Label: "t_a"}, `"a" "t_a"`},
+		{&LabeledColumn{&Column{"t", "a"}, "t_a"}, `"t"."a" "t_a"`},
+		{&LabeledColumn{literal("1"), "f"}, `1 "f"`},
 	}
 	testMany(t, cases)
 }
 
 func TestTable(t *testing.T) {
 	cases := []compileTest{
-		{&Table{Schema: "a", Name: "b"}, `"a"."b"`},
-		{&Table{Name: "b"}, `"b"`},
+		{&Table{"a", "b"}, `"a"."b"`},
+		{&Table{"", "b"}, `"b"`},
 	}
 	testMany(t, cases)
 }
@@ -49,7 +49,9 @@ func TestLabeledTable(t *testing.T) {
 
 func TestSubquery(t *testing.T) {
 	sel := &SelectStmt{
-		Columns: []*Labeled{Label(literal("1"), "one")},
+		Columns: []*LabeledColumn{
+			&LabeledColumn{literal("1"), "one"},
+		},
 	}
 	s := Subquery(sel, "s")
 	testCompile(t, s, `(SELECT 1 "one") "s"`)
@@ -99,7 +101,9 @@ func TestFrom(t *testing.T) {
 	}
 	s := &FromClauseItem{
 		Subquery: Subquery(&SelectStmt{
-			Columns: []*Labeled{Label(literal("1"), "one")},
+			Columns: []*LabeledColumn{
+				&LabeledColumn{literal("1"), "one"},
+			},
 		}, "s"),
 	}
 	on := literal("TRUE")
@@ -137,7 +141,9 @@ func TestGroupBy(t *testing.T) {
 
 func TestSelectStmt(t *testing.T) {
 	sel := &SelectStmt{
-		Columns: []*Labeled{Label(literal("1"), "a")},
+		Columns: []*LabeledColumn{
+			&LabeledColumn{literal("1"), "a"},
+		},
 	}
 	testCompile(t, sel, `SELECT 1 "a"`)
 
@@ -164,14 +170,6 @@ func TestSelectStmt(t *testing.T) {
 
 	sel.OffsetClause = &OffsetClause{literal("20")}
 	testCompile(t, sel, `SELECT 1 "a" FROM "s"."a" "s_a" WHERE TRUE GROUP BY f HAVING FALSE LIMIT 10 OFFSET 20`)
-}
-
-func TestLabel(t *testing.T) {
-	f := literal("f")
-	cases := []compileTest{
-		{Label(f, "g"), `f "g"`},
-	}
-	testMany(t, cases)
 }
 
 func TestQuote(t *testing.T) {

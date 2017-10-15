@@ -205,47 +205,31 @@ func Quote(name string) Quoted {
 	return Quoted(name)
 }
 
-type Labeled struct {
-	expr        Expr
-	quotedLabel Quoted
-}
-
-func (l *Labeled) Transform(c *Compiler) Node {
-	l.expr = (l.expr.Transform(c)).(Expr)
-	l.quotedLabel = (l.quotedLabel.Transform(c)).(Quoted)
-	return l
-}
-
-func (l *Labeled) Stringify(c *Compiler) error {
-	if err := l.expr.Stringify(c); err != nil {
-		return err
-	}
-	c.WriteVerbatim(" ")
-	return l.quotedLabel.Stringify(c)
-}
-
-func Label(expr Expr, label string) *Labeled {
-	return &Labeled{
-		expr:        expr,
-		quotedLabel: Quote(label),
-	}
-}
-
-func SelectExpr(sel *SelectStmt) Node {
-	return &Paren{sel}
-}
-
 type LabeledSelectStmt struct {
-	*Labeled
+	SelectStmt *SelectStmt
+	Label      string
 }
 
 func (l *LabeledSelectStmt) Transform(c *Compiler) Node {
-	l.Labeled = (l.Labeled.Transform(c)).(*Labeled)
+	l.SelectStmt = (l.SelectStmt.Transform(c)).(*SelectStmt)
 	return l
 }
 
-func Subquery(sel *SelectStmt, alias string) *LabeledSelectStmt {
-	return &LabeledSelectStmt{Label(&Paren{sel}, alias)}
+func (l *LabeledSelectStmt) Stringify(c *Compiler) error {
+	c.WriteVerbatim("(")
+	if err := l.SelectStmt.Stringify(c); err != nil {
+		return err
+	}
+	c.WriteVerbatim(") ")
+	c.WriteIdentifier(l.Label)
+	return nil
+}
+
+func Subquery(sel *SelectStmt, label string) *LabeledSelectStmt {
+	return &LabeledSelectStmt{
+		SelectStmt: sel,
+		Label:      label,
+	}
 }
 
 type Column struct {
@@ -267,9 +251,8 @@ func (col *Column) Stringify(c *Compiler) error {
 }
 
 type LabeledColumn struct {
-	TableLabel string
-	Name       string
-	Label      string
+	Expr  Expr
+	Label string
 }
 
 func (l *LabeledColumn) Transform(c *Compiler) Node {
@@ -277,11 +260,9 @@ func (l *LabeledColumn) Transform(c *Compiler) Node {
 }
 
 func (l *LabeledColumn) Stringify(c *Compiler) error {
-	if l.TableLabel != "" {
-		c.WriteIdentifier(l.TableLabel)
-		c.WriteVerbatim(".")
+	if err := l.Expr.Stringify(c); err != nil {
+		return err
 	}
-	c.WriteIdentifier(l.Name)
 	c.WriteVerbatim(" ")
 	c.WriteIdentifier(l.Label)
 	return nil
@@ -508,7 +489,7 @@ func (o *OffsetClause) Stringify(c *Compiler) error {
 }
 
 type SelectStmt struct {
-	Columns       []*Labeled
+	Columns       []*LabeledColumn
 	FromClause    *FromClause
 	WhereClause   *WhereClause
 	GroupByClause *GroupByClause
@@ -519,7 +500,7 @@ type SelectStmt struct {
 
 func (s *SelectStmt) Transform(c *Compiler) Node {
 	for i, v := range s.Columns {
-		s.Columns[i] = (v.Transform(c)).(*Labeled)
+		s.Columns[i] = (v.Transform(c)).(*LabeledColumn)
 	}
 	if s.FromClause != nil {
 		s.FromClause = (s.FromClause.Transform(c)).(*FromClause)
