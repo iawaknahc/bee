@@ -15,8 +15,12 @@ func (l literal) Stringify(c *Compiler) error {
 	return nil
 }
 
-func TestTableRef(t *testing.T) {
-	f := TableRef("a", "b", "a_b")
+func TestLabeledTable(t *testing.T) {
+	f := &LabeledTable{
+		Schema: "a",
+		Name:   "b",
+		Label:  "a_b",
+	}
 	testCompile(t, f, `"a"."b" "a_b"`)
 }
 
@@ -29,8 +33,16 @@ func TestSubquery(t *testing.T) {
 }
 
 func TestJoin(t *testing.T) {
-	t1 := TableRef("s", "t1", "s_t1")
-	t2 := TableRef("s", "t2", "s_t2")
+	t1 := &LabeledTable{
+		Schema: "s",
+		Name:   "t1",
+		Label:  "s_t1",
+	}
+	t2 := &LabeledTable{
+		Schema: "s",
+		Name:   "t2",
+		Label:  "s_t2",
+	}
 	left := &FromClauseItem{
 		TableRef: t1,
 	}
@@ -49,10 +61,18 @@ func TestJoin(t *testing.T) {
 
 func TestFrom(t *testing.T) {
 	t1 := &FromClauseItem{
-		TableRef: TableRef("s", "t1", "s_t1"),
+		TableRef: &LabeledTable{
+			Schema: "s",
+			Name:   "t1",
+			Label:  "s_t1",
+		},
 	}
 	t2 := &FromClauseItem{
-		TableRef: TableRef("s", "t2", "s_t2"),
+		TableRef: &LabeledTable{
+			Schema: "s",
+			Name:   "t2",
+			Label:  "s_t2",
+		},
 	}
 	s := &FromClauseItem{
 		Subquery: Subquery(&SelectStmt{
@@ -99,7 +119,11 @@ func TestSelectStmt(t *testing.T) {
 	testCompile(t, sel, `SELECT 1 "a"`)
 
 	sel.FromClause = &FromClause{&FromClauseItem{
-		TableRef: TableRef("s", "a", "s_a"),
+		TableRef: &LabeledTable{
+			Schema: "s",
+			Name:   "a",
+			Label:  "s_a",
+		},
 	}}
 	testCompile(t, sel, `SELECT 1 "a" FROM "s"."a" "s_a"`)
 

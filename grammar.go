@@ -264,16 +264,24 @@ func Subquery(sel *SelectStmt, alias string) *LabeledSelectStmt {
 }
 
 type LabeledTable struct {
-	*Labeled
+	Schema string
+	Name   string
+	Label  string
 }
 
 func (l *LabeledTable) Transform(c *Compiler) Node {
-	l.Labeled = (l.Labeled.Transform(c)).(*Labeled)
 	return l
 }
 
-func TableRef(schema, tableName, label string) *LabeledTable {
-	return &LabeledTable{Label(Table(schema, tableName), label)}
+func (l *LabeledTable) Stringify(c *Compiler) error {
+	if l.Schema != "" {
+		c.WriteIdentifier(l.Schema)
+		c.WriteVerbatim(".")
+	}
+	c.WriteIdentifier(l.Name)
+	c.WriteVerbatim(" ")
+	c.WriteIdentifier(l.Label)
+	return nil
 }
 
 type FromClauseItem struct {
