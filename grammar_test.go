@@ -15,6 +15,14 @@ func (l literal) Stringify(c *Compiler) error {
 	return nil
 }
 
+func TestTable(t *testing.T) {
+	f := &Table{
+		Schema: "a",
+		Name:   "b",
+	}
+	testCompile(t, f, `"a"."b"`)
+}
+
 func TestLabeledTable(t *testing.T) {
 	f := &LabeledTable{
 		Schema: "a",
