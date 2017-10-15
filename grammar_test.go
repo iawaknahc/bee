@@ -172,15 +172,6 @@ func TestSelectStmt(t *testing.T) {
 	testCompile(t, sel, `SELECT 1 "a" FROM "s"."a" "s_a" WHERE TRUE GROUP BY f HAVING FALSE LIMIT 10 OFFSET 20`)
 }
 
-func TestQuote(t *testing.T) {
-	cases := []compileTest{
-		{Quote("a"), `"a"`},
-		{Quote("1a"), `"1a"`},
-		{Quote("日本語"), `U&"\+0065E5\+00672C\+008A9E"`},
-	}
-	testMany(t, cases)
-}
-
 func TestTuple(t *testing.T) {
 	f := literal("f")
 	cases := []compileTest{

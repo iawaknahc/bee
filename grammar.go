@@ -190,21 +190,6 @@ func FullJoin(left, right *FromClauseItem, on Expr) *JoinClause {
 	}
 }
 
-type Quoted string
-
-func (q Quoted) Transform(c *Compiler) Node {
-	return q
-}
-
-func (q Quoted) Stringify(c *Compiler) error {
-	c.WriteIdentifier(string(q))
-	return nil
-}
-
-func Quote(name string) Quoted {
-	return Quoted(name)
-}
-
 type LabeledSelectStmt struct {
 	SelectStmt *SelectStmt
 	Label      string
