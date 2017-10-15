@@ -178,8 +178,8 @@ func TestSelectStmt(t *testing.T) {
 func TestTuple(t *testing.T) {
 	f := literal("f")
 	cases := []compileTest{
-		{Tuple(f), "(f)"},
-		{Tuple(f, f), "(f,f)"},
+		{MakeTuple(f), "(f)"},
+		{MakeTuple(f, f), "(f,f)"},
 	}
 	testMany(t, cases)
 }

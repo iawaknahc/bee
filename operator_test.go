@@ -92,15 +92,15 @@ func TestLike(t *testing.T) {
 func TestIn(t *testing.T) {
 	f := literal("f")
 	cases := []compileTest{
-		{In(f, Tuple(f)), "f IN (f)"},
-		{Not(In(f, Tuple(f))), "f NOT IN (f)"},
-		{Not(Not(In(f, Tuple(f)))), "f IN (f)"},
+		{In(f, MakeTuple(f)), "f IN (f)"},
+		{Not(In(f, MakeTuple(f))), "f NOT IN (f)"},
+		{Not(Not(In(f, MakeTuple(f)))), "f IN (f)"},
 
-		{NotIn(f, Tuple(f)), "f NOT IN (f)"},
-		{Not(NotIn(f, Tuple(f))), "f IN (f)"},
-		{Not(Not(NotIn(f, Tuple(f)))), "f NOT IN (f)"},
+		{NotIn(f, MakeTuple(f)), "f NOT IN (f)"},
+		{Not(NotIn(f, MakeTuple(f))), "f IN (f)"},
+		{Not(Not(NotIn(f, MakeTuple(f)))), "f NOT IN (f)"},
 
-		{In(In(f, Tuple(f)), Tuple(f)), "(f IN (f)) IN (f)"},
+		{In(In(f, MakeTuple(f)), MakeTuple(f)), "(f IN (f)) IN (f)"},
 	}
 	testMany(t, cases)
 }

@@ -142,36 +142,41 @@ func (u *UnaryOperator) Stringify(c *Compiler) error {
 	if associativity == NonAssociative {
 		return ErrNonAssociative
 	}
+	ourPrecedence, err := resolveOperatorPrecedence(u, c)
+	if err != nil {
+		return err
+	}
 
-	write := func(e Expr) error {
+	write := func(e Expr, needParen bool) error {
 		if associativity == RightAssociative {
 			c.WriteVerbatim(u.Symbol + " ")
 		}
-		if err := e.Stringify(c); err != nil {
-			return err
+		if needParen {
+			if err := stringifyParen(e, c); err != nil {
+				return err
+			}
+		} else {
+			if err := e.Stringify(c); err != nil {
+				return err
+			}
 		}
 		if associativity == LeftAssociative {
 			c.WriteVerbatim(" " + u.Symbol)
 		}
 		return nil
 	}
-
-	ourPrecedence, err := resolveOperatorPrecedence(u, c)
-	if err != nil {
-		return err
-	}
 	v, ok := (u.Expr).(operator)
 	if !ok {
-		return write(u.Expr)
+		return write(u.Expr, false)
 	}
 	theirPrecedence, err := resolveOperatorPrecedence(v, c)
 	if err != nil {
 		return err
 	}
 	if theirPrecedence < ourPrecedence {
-		return write(&Paren{u.Expr})
+		return write(u.Expr, true)
 	}
-	return write(u.Expr)
+	return write(u.Expr, false)
 }
 
 type BinaryOperator struct {
@@ -244,8 +249,7 @@ func (b *BinaryOperator) Stringify(c *Compiler) error {
 			(assoc != NonAssociative && (theirPrecedence < ourPrecedence ||
 				theirPrecedence == ourPrecedence && assoc == targetAssoc)))
 		if needParen {
-			paren := &Paren{op}
-			return paren.Stringify(c)
+			return stringifyParen(op, c)
 		}
 		return op.Stringify(c)
 	}
@@ -331,8 +335,7 @@ func (t *TernaryOperator) Stringify(c *Compiler) error {
 		}
 		needParen := theirPrecedence <= ourPrecedence
 		if needParen {
-			paren := &Paren{op}
-			return paren.Stringify(c)
+			return stringifyParen(op, c)
 		}
 		return op.Stringify(c)
 	}

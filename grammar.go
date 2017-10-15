@@ -87,30 +87,28 @@ func (f *FuncExpr) Stringify(c *Compiler) error {
 	return nil
 }
 
-type CommaSeparated struct {
-	nodes []Node
-}
-
-func (cs *CommaSeparated) Transform(c *Compiler) Node {
-	for i, v := range cs.nodes {
-		cs.nodes[i] = v.Transform(c)
-	}
-	return cs
-}
-
-func (cs *CommaSeparated) Stringify(c *Compiler) error {
-	if len(cs.nodes) <= 0 {
+func stringifyCommaSeparated(nodes []Node, c *Compiler) error {
+	if len(nodes) <= 0 {
 		return nil
 	}
-	if err := cs.nodes[0].Stringify(c); err != nil {
+	if err := nodes[0].Stringify(c); err != nil {
 		return err
 	}
-	for _, n := range cs.nodes[1:] {
+	for _, n := range nodes[1:] {
 		c.WriteVerbatim(",")
 		if err := n.Stringify(c); err != nil {
 			return err
 		}
 	}
+	return nil
+}
+
+func stringifyParen(node Node, c *Compiler) error {
+	c.WriteVerbatim("(")
+	if err := node.Stringify(c); err != nil {
+		return err
+	}
+	c.WriteVerbatim(")")
 	return nil
 }
 
@@ -313,31 +311,33 @@ func (f *FromClauseItem) Stringify(c *Compiler) error {
 	return ErrUnknownFromClauseItem
 }
 
-type Paren struct {
-	Node Node
+type Tuple struct {
+	Exprs []Expr
 }
 
-func (p *Paren) Transform(c *Compiler) Node {
-	p.Node = p.Node.Transform(c)
-	return p
+func (t *Tuple) Transform(c *Compiler) Node {
+	for i, e := range t.Exprs {
+		t.Exprs[i] = e.Transform(c).(Expr)
+	}
+	return t
 }
 
-func (p *Paren) Stringify(c *Compiler) error {
+func (t *Tuple) Stringify(c *Compiler) error {
 	c.WriteVerbatim("(")
-	if err := p.Node.Stringify(c); err != nil {
+	if err := stringifyCommaSeparated(t.Exprs, c); err != nil {
 		return err
 	}
 	c.WriteVerbatim(")")
 	return nil
 }
 
-func Tuple(first Node, rest ...Node) Node {
-	nodes := make([]Node, 1+len(rest))
-	nodes[0] = first
+func MakeTuple(first Expr, rest ...Expr) *Tuple {
+	exprs := make([]Expr, 1+len(rest))
+	exprs[0] = first
 	for i, e := range rest {
-		nodes[i+1] = e
+		exprs[i+1] = e
 	}
-	return &Paren{&CommaSeparated{nodes}}
+	return &Tuple{exprs}
 }
 
 type Placeholder string
@@ -372,7 +372,7 @@ func makePlaceholderTuple(placeholders []Placeholder) (Node, error) {
 	for i, v := range placeholders[1:] {
 		exprs[i] = v
 	}
-	return Tuple(placeholders[0], exprs...), nil
+	return MakeTuple(placeholders[0], exprs...), nil
 }
 
 func PlaceholderTuple(prefix string, length int) ([]Placeholder, Node, error) {
@@ -402,26 +402,28 @@ func (w *WhereClause) Stringify(c *Compiler) error {
 }
 
 type GroupByClause struct {
-	commaSeparated *CommaSeparated
+	Exprs []Expr
 }
 
 func (g *GroupByClause) Transform(c *Compiler) Node {
-	g.commaSeparated = (g.commaSeparated.Transform(c)).(*CommaSeparated)
+	for i, e := range g.Exprs {
+		g.Exprs[i] = e.Transform(c).(Expr)
+	}
 	return g
 }
 
 func (g *GroupByClause) Stringify(c *Compiler) error {
 	c.WriteVerbatim("GROUP BY ")
-	return g.commaSeparated.Stringify(c)
+	return stringifyCommaSeparated(g.Exprs, c)
 }
 
 func GroupBy(first Expr, rest ...Expr) *GroupByClause {
-	nodes := make([]Node, len(rest)+1)
-	nodes[0] = first
+	exprs := make([]Expr, len(rest)+1)
+	exprs[0] = first
 	for i, v := range rest {
-		nodes[i+1] = v
+		exprs[i+1] = v
 	}
-	return &GroupByClause{&CommaSeparated{nodes}}
+	return &GroupByClause{exprs}
 }
 
 type HavingClause struct {
