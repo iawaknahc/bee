@@ -238,3 +238,16 @@ func TestFuncPanic(t *testing.T) {
 	testPanic(t, func() { Func("1") }, "illegal function name: 1")
 	testPanic(t, func() { Func("a-") }, "illegal function name: a-")
 }
+
+func TestOrderByItem(t *testing.T) {
+	f := literal("f")
+	cases := []compileTest{
+		{Asc(f), "f"},
+		{Desc(f), "f DESC"},
+		{NullsFirst(Asc(f)), "f NULLS FIRST"},
+		{NullsLast(Asc(f)), "f"},
+		{NullsFirst(Desc(f)), "f DESC"},
+		{NullsLast(Desc(f)), "f DESC NULLS LAST"},
+	}
+	testMany(t, cases)
+}

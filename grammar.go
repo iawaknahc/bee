@@ -440,6 +440,94 @@ func (h *HavingClause) Stringify(c *Compiler) error {
 	return h.Expr.Stringify(c)
 }
 
+type OrderByItem interface {
+	Node
+	Expr() Expr
+	IsDesc() bool
+	HasNullsSet() bool
+	IsNullsLast() bool
+	private()
+}
+
+type orderbyItem struct {
+	expr      Expr
+	desc      bool
+	nullsSet  bool
+	nullsLast bool
+}
+
+func (o *orderbyItem) Expr() Expr {
+	return o.expr
+}
+
+func (o *orderbyItem) IsDesc() bool {
+	return o.desc
+}
+
+func (o *orderbyItem) HasNullsSet() bool {
+	return o.nullsSet
+}
+
+func (o *orderbyItem) IsNullsLast() bool {
+	return o.nullsLast
+}
+
+func (o *orderbyItem) private() {
+}
+
+func (o *orderbyItem) Transform(c *Compiler) Node {
+	o.expr = o.expr.Transform(c).(Expr)
+	return o
+}
+
+func (o *orderbyItem) Stringify(c *Compiler) error {
+	if err := o.expr.Stringify(c); err != nil {
+		return err
+	}
+	if o.desc {
+		c.WriteVerbatim(" DESC")
+	}
+	if o.nullsSet {
+		if o.desc && o.nullsLast {
+			c.WriteVerbatim(" NULLS LAST")
+		}
+		if !o.desc && !o.nullsLast {
+			c.WriteVerbatim(" NULLS FIRST")
+		}
+	}
+	return nil
+}
+
+func Desc(expr Expr) OrderByItem {
+	return &orderbyItem{
+		expr: expr,
+		desc: true,
+	}
+}
+
+func Asc(expr Expr) OrderByItem {
+	return &orderbyItem{
+		expr: expr,
+	}
+}
+
+func NullsLast(o OrderByItem) OrderByItem {
+	return &orderbyItem{
+		expr:      o.Expr(),
+		desc:      o.IsDesc(),
+		nullsSet:  true,
+		nullsLast: true,
+	}
+}
+
+func NullsFirst(o OrderByItem) OrderByItem {
+	return &orderbyItem{
+		expr:     o.Expr(),
+		desc:     o.IsDesc(),
+		nullsSet: true,
+	}
+}
+
 type LimitClause struct {
 	Expr Expr
 }
