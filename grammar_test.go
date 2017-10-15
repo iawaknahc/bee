@@ -53,7 +53,7 @@ func TestSubquery(t *testing.T) {
 			&LabeledColumn{literal("1"), "one"},
 		},
 	}
-	s := Subquery(sel, "s")
+	s := &LabeledSelectStmt{sel, "s"}
 	testCompile(t, s, `(SELECT 1 "one") "s"`)
 }
 
@@ -100,11 +100,14 @@ func TestFrom(t *testing.T) {
 		},
 	}
 	s := &FromClauseItem{
-		Subquery: Subquery(&SelectStmt{
-			Columns: []*LabeledColumn{
-				&LabeledColumn{literal("1"), "one"},
+		Subquery: &LabeledSelectStmt{
+			&SelectStmt{
+				Columns: []*LabeledColumn{
+					&LabeledColumn{literal("1"), "one"},
+				},
 			},
-		}, "s"),
+			"s",
+		},
 	}
 	on := literal("TRUE")
 

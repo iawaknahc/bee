@@ -210,13 +210,6 @@ func (l *LabeledSelectStmt) Stringify(c *Compiler) error {
 	return nil
 }
 
-func Subquery(sel *SelectStmt, label string) *LabeledSelectStmt {
-	return &LabeledSelectStmt{
-		SelectStmt: sel,
-		Label:      label,
-	}
-}
-
 type Column struct {
 	TableLabel string
 	Name       string
