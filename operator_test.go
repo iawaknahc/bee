@@ -4,6 +4,19 @@ import (
 	"testing"
 )
 
+func TestAndOr(t *testing.T) {
+	a := literal("a")
+	b := literal("b")
+	c := literal("c")
+	cases := []compileTest{
+		{Or(And(a, b), c), "a AND b OR c"},
+		{Or(a, And(b, c)), "a OR b AND c"},
+		{And(a, Or(b, c)), "a AND (b OR c)"},
+		{And(Or(a, b), c), "(a OR b) AND c"},
+	}
+	testMany(t, cases)
+}
+
 func TestUnaryOperator(t *testing.T) {
 	a := literal("a")
 	cases := []compileTest{
@@ -38,7 +51,13 @@ func TestUnaryOperator(t *testing.T) {
 func TestBinaryOperator(t *testing.T) {
 	f := literal("f")
 	cases := []compileTest{
-		{dot(f, f), "f.f"},
+		{Mul(f, f), "f * f"},
+		{Mod(f, f), "f % f"},
+		{Lt(f, f), "f < f"},
+		{Lte(f, f), "f <= f"},
+		{Gt(f, f), "f > f"},
+		{Gte(f, f), "f >= f"},
+
 		{Sub(f, f), "f - f"},
 		{Sub(f, Sub(f, f)), "f - (f - f)"},
 		{Sub(Sub(f, f), f), "f - f - f"},

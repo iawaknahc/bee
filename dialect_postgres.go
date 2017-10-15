@@ -77,15 +77,13 @@ func (p *Postgres) Precedence(op OperatorType) uint {
 		return 8
 	case OpMul, OpDiv, OpMod:
 		return 9
-	case OpDot:
-		return 14
 	}
 	return 0
 }
 
 func (p *Postgres) Associativity(op OperatorType) Associativity {
 	switch op {
-	case OpIsNull, OpIsNotNull, OpIsTrue, OpIsNotTrue, OpIsFalse, OpIsNotFalse, OpOr, OpAnd, OpAdd, OpSub, OpMul, OpDiv, OpMod, OpDot:
+	case OpIsNull, OpIsNotNull, OpIsTrue, OpIsNotTrue, OpIsFalse, OpIsNotFalse, OpOr, OpAnd, OpAdd, OpSub, OpMul, OpDiv, OpMod:
 		return LeftAssociative
 	case OpNot:
 		return RightAssociative

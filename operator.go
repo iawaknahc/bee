@@ -4,7 +4,6 @@ type OperatorType uint
 
 const (
 	_ = iota
-	OpDot
 	OpMul
 	OpDiv
 	OpMod
@@ -416,16 +415,6 @@ func IsNotFalse(e Expr) *UnaryOperator {
 		NegatedType:   OpIsFalse,
 		NegatedSymbol: "IS FALSE",
 		Expr:          e,
-	}
-}
-
-func dot(left, right Expr) *BinaryOperator {
-	return &BinaryOperator{
-		Type:          OpDot,
-		Symbol:        ".",
-		Left:          left,
-		Right:         right,
-		SuppressSpace: true,
 	}
 }
 
