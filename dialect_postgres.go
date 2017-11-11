@@ -8,21 +8,11 @@ import (
 type Postgres struct{}
 
 func (p *Postgres) isLegalFirstIdentifierCharacter(r rune) bool {
-	if r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' || r == '_' {
-		return true
-	}
-	return false
+	return r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' || r == '_'
 }
 
 func (p *Postgres) isLegalIdentifierCharacter(r rune) bool {
-	b := p.isLegalFirstIdentifierCharacter(r)
-	if b {
-		return true
-	}
-	if r >= '0' && r <= '9' {
-		return true
-	}
-	return false
+	return p.isLegalFirstIdentifierCharacter(r) || r >= '0' && r <= '9'
 }
 
 func (p *Postgres) unicodeEscapeRune(r rune) string {
