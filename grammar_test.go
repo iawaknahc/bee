@@ -277,3 +277,28 @@ func TestCaseExpr(t *testing.T) {
 	}
 	testMany(t, cases)
 }
+
+func TestTypes(t *testing.T) {
+	cases := []compileTest{
+		{Smallint, "SMALLINT"},
+		{Integer, "INTEGER"},
+		{Bigint, "BIGINT"},
+		{Boolean, "BOOLEAN"},
+		{Real, "REAL"},
+		{DoublePrecision, "DOUBLE PRECISION"},
+		{Text, "TEXT"},
+		{Timestamp, "TIMESTAMP"},
+		{Decimal(3, 4), "DECIMAL(3,4)"},
+	}
+	testMany(t, cases)
+}
+
+func TestCast(t *testing.T) {
+	a := literal("a")
+	cases := []compileTest{
+		{Cast(a, Smallint), "CAST(a AS SMALLINT)"},
+		{Cast(Not(Not(a)), Decimal(3, 4)), "CAST(a AS DECIMAL(3,4))"},
+		{Cast(Cast(a, Smallint), Bigint), "CAST(CAST(a AS SMALLINT) AS BIGINT)"},
+	}
+	testMany(t, cases)
+}

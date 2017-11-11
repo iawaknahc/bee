@@ -26,6 +26,63 @@ type Node interface {
 
 type Expr = Node
 
+type SQLType string
+
+func (s SQLType) Transform(c *Compiler) Node {
+	return s
+}
+
+func (s SQLType) Stringify(c *Compiler) error {
+	c.WriteVerbatim(string(s))
+	return nil
+}
+
+var (
+	Smallint        = SQLType("SMALLINT")
+	Integer         = SQLType("INTEGER")
+	Bigint          = SQLType("BIGINT")
+	Boolean         = SQLType("BOOLEAN")
+	Real            = SQLType("REAL")
+	DoublePrecision = SQLType("DOUBLE PRECISION")
+	Text            = SQLType("TEXT")
+	Timestamp       = SQLType("TIMESTAMP")
+)
+
+func Decimal(precision int, scale int) SQLType {
+	return SQLType(fmt.Sprintf("DECIMAL(%v,%v)", precision, scale))
+}
+
+type CastExpr struct {
+	expr    Expr
+	sqlType SQLType
+}
+
+func Cast(expr Expr, sqlType SQLType) Expr {
+	return &CastExpr{
+		expr:    expr,
+		sqlType: sqlType,
+	}
+}
+
+func (ce *CastExpr) Transform(c *Compiler) Node {
+	ce.expr = ce.expr.Transform(c).(Expr)
+	ce.sqlType = ce.sqlType.Transform(c).(SQLType)
+	return ce
+}
+
+func (ce *CastExpr) Stringify(c *Compiler) error {
+	c.WriteVerbatim("CAST(")
+	if err := ce.expr.Stringify(c); err != nil {
+		return err
+	}
+	c.WriteVerbatim(" AS ")
+	if err := ce.sqlType.Stringify(c); err != nil {
+		return err
+	}
+	c.WriteVerbatim(")")
+	return nil
+}
+
 type FuncExpr struct {
 	name            string
 	args            []Expr
